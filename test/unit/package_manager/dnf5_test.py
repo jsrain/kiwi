@@ -4,12 +4,12 @@ from mock import (
 from pytest import raises
 import mock
 
-from kiwi.package_manager.dnf import PackageManagerDnf
+from kiwi.package_manager.dnf5 import PackageManagerDnf5
 
 from kiwi.exceptions import KiwiRequestError
 
 
-class TestPackageManagerDnf:
+class TestPackageManagerDnf5:
     def setup(self):
         repository = mock.Mock()
         repository.root_dir = '/root-dir'
@@ -20,7 +20,7 @@ class TestPackageManagerDnf:
                 'command_env': ['env']
             }
         )
-        self.manager = PackageManagerDnf(repository)
+        self.manager = PackageManagerDnf5(repository)
 
     def setup_method(self, cls):
         self.setup()
@@ -50,7 +50,7 @@ class TestPackageManagerDnf:
             }
         )
         dnf_call_args = [
-            'dnf', '--config', '/root-dir/dnf.conf',
+            'dnf5', '--config', '/root-dir/dnf.conf',
             '-y', '--installroot', '/root-dir', '--releasever=0'
         ]
         assert mock_run.call_args_list == [
@@ -89,13 +89,13 @@ class TestPackageManagerDnf:
         self.manager.process_install_requests_bootstrap()
         mock_run.assert_called_once_with(
             [
-                'dnf', '--config', '/root-dir/dnf.conf', '-y',
+                'dnf5', '--config', '/root-dir/dnf.conf', '-y',
                 '--releasever=0', 'makecache'
             ]
         )
         mock_call.assert_called_once_with(
             [
-                'dnf', '--config', '/root-dir/dnf.conf', '-y',
+                'dnf5', '--config', '/root-dir/dnf.conf', '-y',
                 '--installroot', '/root-dir', '--releasever=0',
                 'install', 'vim', '@collection'
             ], ['env']
@@ -109,7 +109,7 @@ class TestPackageManagerDnf:
         self.manager.process_install_requests()
         mock_call.assert_called_once_with(
             [
-                'chroot', '/root-dir', 'dnf', '--config', '/dnf.conf', '-y',
+                'chroot', '/root-dir', 'dnf5', '--config', '/dnf.conf', '-y',
                 '--releasever=0', '--exclude=skipme',
                 'install', 'vim', '@collection'
             ], ['env']
@@ -137,7 +137,7 @@ class TestPackageManagerDnf:
         self.manager.process_delete_requests()
         mock_call.assert_called_once_with(
             [
-                'chroot', '/root-dir', 'dnf',
+                'chroot', '/root-dir', 'dnf5',
                 '--config', '/dnf.conf', '-y',
                 '--releasever=0', 'autoremove', 'vim'
             ],
@@ -162,7 +162,7 @@ class TestPackageManagerDnf:
         self.manager.update()
         mock_call.assert_called_once_with(
             [
-                'chroot', '/root-dir', 'dnf',
+                'chroot', '/root-dir', 'dnf5',
                 '--config', '/dnf.conf', '-y',
                 '--releasever=0', 'upgrade'
             ], ['env']
@@ -185,7 +185,7 @@ class TestPackageManagerDnf:
     def test_match_package_deleted(self):
         assert self.manager.match_package_deleted('foo', 'Removing: foo')
 
-    @patch('kiwi.package_manager.dnf.RpmDataBase')
+    @patch('kiwi.package_manager.dnf5.RpmDataBase')
     def test_post_process_install_requests_bootstrap(self, mock_RpmDataBase):
         rpmdb = mock.Mock()
         rpmdb.has_rpm.return_value = True
@@ -194,7 +194,7 @@ class TestPackageManagerDnf:
         rpmdb.rebuild_database.assert_called_once_with()
         rpmdb.set_database_to_image_path.assert_called_once_with()
 
-    @patch('kiwi.package_manager.dnf.Rpm')
+    @patch('kiwi.package_manager.dnf5.Rpm')
     def test_clean_leftovers(self, mock_rpm):
         mock_rpm.return_value = mock.Mock()
         self.manager.clean_leftovers()

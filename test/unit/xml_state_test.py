@@ -116,7 +116,7 @@ class TestXMLState:
     @patch('kiwi.xml_state.XMLState.get_preferences_sections')
     def test_get_default_package_manager(self, mock_preferences):
         mock_preferences.return_value = []
-        assert self.state.get_package_manager() == 'dnf'
+        assert self.state.get_package_manager() == 'dnf4'
 
     def test_get_image_version(self):
         assert self.state.get_image_version() == '1.13.2'
@@ -130,6 +130,12 @@ class TestXMLState:
         ]
         assert self.no_image_packages_boot_state.get_bootstrap_packages() == [
             'patterns-openSUSE-base'
+        ]
+        self.state.get_package_manager = Mock(
+            return_value="dnf4"
+        )
+        assert self.state.get_bootstrap_packages() == [
+            'dnf', 'filesystem',
         ]
 
     def test_get_system_packages(self):
